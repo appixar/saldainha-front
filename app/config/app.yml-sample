@@ -1,0 +1,92 @@
+#················································
+# APP SETTINGS
+#················································
+NAME: My Project
+ID: my-project
+URL: https://domain.com # http://localhost:8000
+FORCE_URL: false
+DYNAMIC_SUB_DOMAIN: false
+
+#················································
+# API-SERVER
+#················································
+#API_SERVER: false
+API_SERVER:
+  AUTH_CONTROLLER: HeaderController # external module
+  SANITIZE_CONTROLLER: MyService.sanitize
+  ALWAYS_200: false
+  ROUTE_PERMISSION_FLAG: ⛊
+  JSON_RESULT_INDICATOR: true # {success:1, data:json_data}
+
+#················································
+# API-CLIENT
+#················································
+API_CLIENT:
+  "main":
+    DNS: https://api.domain.com
+    HEADER: api_header # session[api_header][]
+
+#················································
+# FRONTEND BUILD
+#------------------------------------------------
+# File inclusion sequence
+# Notes:
+#   - FALSE, if API server is on
+#   - FLOW_INNER: rules for builds inside parent build
+#················································
+#PAGES: false
+PAGES:
+  FILE_SEQUENCE:
+    - <PAGE>.php
+    - /inc-header.tpl
+    - <PAGE>.tpl
+    - /inc-footer.tpl
+    - scripts.tpl
+
+URL_MASK:
+  .post: <PAGE>.post.php
+  .run: <PAGE>.run.php
+  .exec: <PAGE>.exec.php
+  .css: <PAGE>.css
+  .js: <PAGE>.js
+
+#················································
+# SESSION TIME
+#················································
+SESSION:
+  LIFETIME: 3600 # SEGUNDOS DE INATIVIDADE. 21600=6H, 43200=12H, 86400=24H
+  COOKIE_LIFETIME: 21600 # SE 0 = DESTRUÍDO AO FECHAR BROWSER
+  PROBABILTY: 1 # 1% DE PROBABILIDADE DE REMOVER SESSÕES EXPIRADAS A CADA NOVA SESSÃO INICIADA.
+
+#················································
+# PROJECT MONITOR (https://<project_url>/_sys/dashboard)
+#················································
+MONITOR:
+  ENABLED: true
+  CUSTOM_JOBS:
+    bots: node
+
+#················································
+# JOBS EVERY 1 MINUTE
+#················································
+JOBS:
+  - src/jobs/demo.php
+
+#················································
+# AUTO INCLUDE LIBS (/* TO ALL)
+#················································
+# UNECESSARY?
+AUTOLOAD:
+  - modules/auth
+  - modules/api
+  - modules/mysql
+  - modules/mail
+  - src/libs/uitools
+  - src/libs/helpers
+
+#················································
+# DEBUG FUNCTION
+#------------------------------------------------
+# If true, can be accessed by <url>/debug
+#················································
+DEBUG: true
