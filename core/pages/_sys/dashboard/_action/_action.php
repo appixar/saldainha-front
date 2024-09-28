@@ -1,4 +1,5 @@
 <?php
+if (@!$_SESSION['_sys']['auth']) exit;
 
 $basedir = realpath(Xplend::DIR_ROOT);
 $fn = @$_GET['fn'];
