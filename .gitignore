@@ -11,6 +11,8 @@ src/jobs/*
 src/libs/*
 src/routes/*
 src/services/*
+pages/*
+!pages/home
 !src/controllers/.gitkeep
 !src/controllers/DemoController.php
 !src/jobs/.gitkeep
