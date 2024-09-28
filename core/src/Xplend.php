@@ -235,8 +235,12 @@ class Xplend
     // CHECK DEPENDENCIES
     private function checkDependencies()
     {
+        global $_APP;
         if (!function_exists("yaml_parse")) {
             Xplend::refreshError("Yaml is missing", "sudo apt-get install php-yaml");
+        }
+        if (@$_APP["CACHE"]["ENABLED"] AND !class_exists('Redis')) {
+            Xplend::refreshError("Redis is missing", "sudo apt install redis-server<br/>sudo systemctl enable redis-server<br/>sudo apt install php-redis");
         }
     }
     /*public static function module($lib)

@@ -5,10 +5,11 @@ class Cache extends Xplend
     public $redis; // instance
     public function __construct()
     {
+        global $_APP;
         $this->redis = new Redis();
         $this->status = false;
         try {
-            $this->redis->connect('127.0.0.1', 6379);
+            $this->redis->connect(@$_APP['CACHE']['IP'], @$_APP['CACHE']['PORT']);
             $this->status = true;
         } catch (Exception $e) {
             //echo "Não foi possível conectar ao Redis: ", $e->getMessage();
@@ -19,13 +20,17 @@ class Cache extends Xplend
     {
         global $_CACHE, $_APP;
         if (!@$_APP['CACHE']['ENABLED']) return false;
-        $_CACHE = true;
         if (is_array($condition)) $condition = json_encode($condition);
         $url = "{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
-        $key = "cache/" . $condition . "/" . $url;
+        $key = "cache|" . $condition . "|" . $url;
+        $_CACHE = [
+            'exp' => $exp,
+            'key' => $key
+        ];
         $cache = new Cache();
         $data = $cache->get($key);
         if ($data) {
+            echo "cached";
             echo $data;
             exit;
         }

@@ -95,7 +95,3 @@ foreach ($jobsConfig as $k => $v) {
     </tbody>
 </table>
 
-<a href="/_sys/auth/logout" class="btn btn-secondary mb-3">
-    <i class="fa-solid fa-right-from-bracket"></i>
-    Logout
-</a>

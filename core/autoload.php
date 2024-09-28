@@ -24,3 +24,4 @@ include __DIR__ . '/src/Request.php';
 include __DIR__ . '/src/Api.php';
 include __DIR__ . '/src/Http.php';
 include __DIR__ . '/src/ParentClass.php';
+include __DIR__ . '/src/Cache.php';

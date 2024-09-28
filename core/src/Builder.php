@@ -351,7 +351,10 @@ class Builder extends Xplend
     }
     private function loadContent()
     {
-        global $_APP, $_ORDER, $_FILES_WAIT_END;
+        global $_APP, $_ORDER, $_FILES_WAIT_END, $_CACHE;
+
+        // Inicializa o buffer de saída
+        if (@$_CACHE['key']) ob_start();
 
         foreach ($GLOBALS as $k => $v) global ${$k};
 
@@ -362,6 +365,7 @@ class Builder extends Xplend
                 $start = microtime(true); // inicia cronômetro
                 new Debug(__CLASS__, "$file...", "muted");
 
+                #echo $file."<br>";
                 require_once($file);
                 $_APP["FLOW_X"]++;
 
@@ -375,6 +379,14 @@ class Builder extends Xplend
             }
         }
         //$this->isSnippet = 0; // BACK TO GLOBAL PAGE STATUS
+
+        // Captura o conteúdo do buffer e armazena em uma variável
+        if (@$_CACHE['key']) {
+            $renderedContent = ob_get_clean();
+            $cache = new Cache();
+            $cache->set(@$_CACHE['key'], $renderedContent, @$_CACHE['exp']);
+            echo $renderedContent;
+        }
     }
     private function getAliasFiles()
     {
