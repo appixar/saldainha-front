@@ -5,15 +5,17 @@ class Cache extends Xplend
     public $redis; // instance
     public function __construct()
     {
-        global $_APP;
+        global $_APP_VAULT;
         $this->redis = new Redis();
         $this->status = false;
         try {
-            $this->redis->connect(@$_APP['CACHE']['IP'], @$_APP['CACHE']['PORT']);
+            $this->redis->connect(@$_APP_VAULT['CACHE']['IP'], @$_APP_VAULT['CACHE']['PORT']);
+            if (@$_APP_VAULT['CACHE']['PASS']) $this->redis->auth($_APP_VAULT['CACHE']['PASS']);
             $this->status = true;
         } catch (Exception $e) {
-            //echo "Não foi possível conectar ao Redis: ", $e->getMessage();
-            $this->status = false;
+            #echo "Não foi possível conectar ao Redis: ", $e->getMessage();
+            Xplend::err("Redis", $e->getMessage());
+            #$this->status = false;
         }
     }
     static function render($exp = 0, $condition = [])

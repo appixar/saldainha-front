@@ -20,29 +20,35 @@ class Xplend
     {
         // CHECK ERROR
         global $_SESSION;
-        if (isset($_SESSION['_ERR'])) {
-            $this->err($_SESSION['_ERR']['TITLE'], $_SESSION['_ERR']['TEXT'], $_SESSION['_ERR']['JSON'], $_SESSION['_ERR']['NUMBER']);
-        }
+        // if (isset($_SESSION['_ERR'])) {
+        //     echo 'err';
+        //     exit;
+        //     $this->err($_SESSION['_ERR']['TITLE'], $_SESSION['_ERR']['TEXT'], $_SESSION['_ERR']['JSON'], $_SESSION['_ERR']['NUMBER']);
+        // }
         // CHECK NOVEL DEPENDENCIES
         $this->checkDependencies();
-
         // MERGE ALL CONFIG/*.YML FILE CONTENTS IN $_APP
         global $_APP, $_APP_VAULT, $_ENV;
         $_ENV = $this->getEnv();
         $_APP = $this->mergeConf();
         $_APP_VAULT = Xplend::replaceEnvValues($_APP);
-        if (!$_APP) Xplend::refreshError("Config is missing", "Please check app.yml");
+        if (!$_APP) Xplend::err("Config is missing", "Please check app.yml");
 
         // FIX URL
         if (PHP_SAPI !== 'cli') {
+
             new UrlFormatter();
         }
 
         // SESSION CONFIG
-        if (@$_APP['SESSION']['LIFETIME'] >= 0) ini_set('session.gc_maxlifetime', $_APP['SESSION']['LIFETIME']);
-        if (@$_APP['SESSION']['PROBABILTY'] >= 0) ini_set('session.gc_probability', $_APP['SESSION']['PROBABILTY']);
-        if (@$_APP['SESSION']['COOKIE_LIFETIME'] >= 0) ini_set('session.cookie_lifetime', $_APP['SESSION']['COOKIE_LIFETIME']);
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            if (@$_APP['SESSION']) {
+                if (@$_APP['SESSION']['LIFETIME'] >= 0) ini_set('session.gc_maxlifetime', $_APP['SESSION']['LIFETIME']);
+                if (@$_APP['SESSION']['PROBABILTY'] >= 0) ini_set('session.gc_probability', $_APP['SESSION']['PROBABILTY']);
+                if (@$_APP['SESSION']['COOKIE_LIFETIME'] >= 0) ini_set('session.cookie_lifetime', $_APP['SESSION']['COOKIE_LIFETIME']);
+            }
+            session_start();
+        }
 
         // LOAD CORE LIBS
         $this->loadCoreLibs();
@@ -159,28 +165,36 @@ class Xplend
     // MERGE ALL CONFIG/*.YML FILE CONTENTS IN $_APP
     public function mergeConf()
     {
-        $_APP = array();
+        $mergedConfig = [];
         $files = $this->findFilesByType('config');
-        foreach ($files as $f) {
-            $fname = basename($f);
-            $yml = file_get_contents($f);
-            $arr = yaml_parse($yml);
-            if (is_array($arr)) {
-                // if routes.yml = sum data
-                if ($fname === 'routes.yml') {
-                    $routes_new = @$arr['ROUTES'];
-                    if ($routes_new) {
-                        foreach ($routes_new as $k => $v) $_APP['ROUTES'][$k] = $v;
+        foreach ($files as $file) {
+            $content = file_get_contents($file);
+            $configData = @yaml_parse($content);
+            if (is_array($configData)) {
+                foreach ($configData as $primaryKey => $data) {
+                    if (isset($mergedConfig[$primaryKey]) && is_array($mergedConfig[$primaryKey]) && is_array($data)) {
+                        $mergedConfig[$primaryKey] = $this->arrayMergeRecursive($mergedConfig[$primaryKey], $data);
+                    } else {
+                        $mergedConfig[$primaryKey] = $data;
                     }
-                }
-                // if not routes.yml = create/replace data
-                else {
-                    foreach ($arr as $k => $v) $_APP[$k] = $v;
                 }
             }
         }
-        return $_APP;
+        return $mergedConfig;
     }
+
+    private function arrayMergeRecursive(array $base, array $merge)
+    {
+        foreach ($merge as $key => $value) {
+            if (isset($base[$key]) && is_array($base[$key]) && is_array($value)) {
+                $base[$key] = $this->arrayMergeRecursive($base[$key], $value);
+            } else {
+                $base[$key] = $value;
+            }
+        }
+        return $base;
+    }
+
     public function getEnv()
     {
         $env = [];
@@ -201,7 +215,7 @@ class Xplend
     {
         $path = __DIR__ . '/../../.env'; // Caminho do seu arquivo .env
         if (!file_exists($path)) file_put_contents($path, "");
-        if (!is_writable($path)) Xplend::refreshError('.env is not writeable', 'sudo chmod 777 .env');
+        if (!is_writable($path)) Xplend::err('.env is not writeable', 'sudo chmod 777 .env');
 
         // Verificar se a chave já existe no arquivo .env
         $fileContent = file_get_contents($path);
@@ -223,7 +237,7 @@ class Xplend
         $yaml = file_get_contents(__DIR__ . "/../../" . $config_file);
         $_APP = yaml_parse($yaml);
         if (!$_APP) {
-            $this->refreshError("Config error", "Please check app.yml");
+            $this->err("Config error", "Please check app.yml");
         }
         $this->loadLibs();
 
@@ -237,10 +251,10 @@ class Xplend
     {
         global $_APP;
         if (!function_exists("yaml_parse")) {
-            Xplend::refreshError("Yaml is missing", "sudo apt-get install php-yaml");
+            Xplend::err("Yaml is missing", "sudo apt-get install php-yaml");
         }
-        if (@$_APP["CACHE"]["ENABLED"] AND !class_exists('Redis')) {
-            Xplend::refreshError("Redis is missing", "sudo apt install redis-server<br/>sudo systemctl enable redis-server<br/>sudo apt install php-redis");
+        if (@$_APP["CACHE"]["ENABLED"] and !class_exists('Redis')) {
+            Xplend::err("Redis is missing", "sudo apt install redis-server<br/>sudo systemctl enable redis-server<br/>sudo apt install php-redis");
         }
     }
     /*public static function module($lib)
@@ -296,19 +310,21 @@ class Xplend
     public function build($snippet = '', $snippet_params = [])
     {
         if (PHP_SAPI !== 'cli') {
-            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            if (!headers_sent()) {
+                if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                    header('Access-Control-Allow-Origin: *');
+                    header('Access-Control-Allow-Credentials: true');
+                    header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
+                    header("Access-Control-Allow-Headers: *");
+                    http_response_code(200);
+                    exit;
+                }
+                // send some CORS headers so the API can be called from anywhere
                 header('Access-Control-Allow-Origin: *');
                 header('Access-Control-Allow-Credentials: true');
                 header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
                 header("Access-Control-Allow-Headers: *");
-                http_response_code(200);
-                exit;
             }
-            // send some CORS headers so the API can be called from anywhere
-            header('Access-Control-Allow-Origin: *');
-            header('Access-Control-Allow-Credentials: true');
-            header("Access-Control-Allow-Methods: OPTIONS,GET,POST,PUT,DELETE");
-            header("Access-Control-Allow-Headers: *");
             new Api(true);
             new Builder($snippet, $snippet_params);
         }
@@ -335,6 +351,19 @@ class Xplend
                         }
                     }
                 }
+                //if (preg_match('/^<SESSION\.(.+)>$/', $headersConf, $matches)) {
+                preg_match_all('/<SESSION\.(.*?)>/', $value, $matches);
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $match) {
+                        $sessionValue = @$_SESSION[$match];
+                        if ($sessionValue !== null) {
+                            // is array
+                            if (is_array($sessionValue)) $value = $sessionValue;
+                            // is string
+                            else $value = str_replace('<SESSION.' . $match . '>', $sessionValue, $value);
+                        }
+                    }
+                }
             }
         }
         return $array;
@@ -351,54 +380,28 @@ class Xplend
         global $_STYLES;
         $_STYLES[] = $array;
     }*/
-    public static function refreshError($title, $text, $number = 500)
-    {
-        global $_SESSION, $_isAPI;
-        $json = false;
-        if (@$_isAPI) $json = true;
-        if (PHP_SAPI !== 'cli') {
-            $_SESSION['_ERR']['TITLE'] = $title;
-            $_SESSION['_ERR']['TEXT'] = $text;
-            $_SESSION['_ERR']['JSON'] = $json;
-            $_SESSION['_ERR']['NUMBER'] = $number;
-            $current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-            header("Location: $current_url");
-        } else {
-            echo "-" . PHP_EOL;
-            echo "* ERROR   : $title" . PHP_EOL;
-            echo "* MESSAGE : $text" . PHP_EOL;
-            echo "-" . PHP_EOL;
-        }
-        exit;
-    }
     // DISPLAY ERROR & DIE
-    public static function err($title, $text = false, $json = false, $number = 500)
+    public static function err($title, $text = false, $code = 500)
     {
-        global $_SESSION, $_HEADER;
-        unset($_SESSION['_ERR']);
-        $ascii = <<<EOD
-   ___            __          
-  / _ \___ ____  / /____  ____
- / , _/ _ `/ _ \/ __/ _ \/ __/
-/_/|_|\_,_/ .__/\__/\___/_/   
-         /_/                  
-EOD;
-
-        if ($json) {
+        global $_HEADER;
+        if (PHP_SAPI !== 'cli') http_response_code($code);
+        // API 
+        if (Xplend::isAPI()) {
             header("Content-Type: application/json; charset=UTF-8");
-            http_response_code($number);
+            $text = str_replace(['"', "\n"], ["'", '. '], $text);
+            $text = preg_replace('/^SQLSTATE\[[^\]]+\]:\s*/i', '', $text);
+            $text = preg_replace('/\s+/', ' ', $text);
+            $text = trim($text);
             echo json_encode(["error" => $title, "message" => $text]);
             exit;
         }
         // BROWSER (PUBLIC)
         if (PHP_SAPI !== 'cli' && isset($_SERVER['HTTP_USER_AGENT']) && !@$_HEADER['method']) {
-            http_response_code($number);
-            echo "<html><head><meta name='viewport' content='width=device-width, initial-scale=1.0'></head>";
-            echo "<body style='margin:0;padding:0;background:#14213d;width:100%;height:100%;display:table'>";
-            echo "<div style='display:table-cell;text-align:center;vertical-align:middle;color:#fff;font-family:monospace;font-size:16px'>";
-            echo "<p style='color:#fca311;font-size:20px'><strong>$title</strong></p>";
-            echo "<p style='color:#e5e5e5'>$text</p>";
-            echo "</div></body></html>";
+            http_response_code($code);
+            echo "<pre style='background:#2B2D42;padding:15px;padding-right:20px;padding-left:20px;line-height:32px;font-size:16px;display:inline-block'>" . PHP_EOL;
+            echo "<span style='color:#EF233C'>$title</span>" . PHP_EOL;
+            echo "<span style='color:#8D99AE'>$text</span>" . PHP_EOL;
+            echo "</pre>" . PHP_EOL;
             exit;
         }
         // TERMINAL (PRIVATE)

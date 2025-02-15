@@ -56,7 +56,7 @@ class Builder extends Xplend
         // DEFINE $FILES
         // TARGET LIST EXISTS?
         //==================================
-        if (!@$_APP['PAGES']) Xplend::refreshError(404, "Not found", 404);
+        if (!@$_APP['PAGES']) Xplend::err(404, "Not found", 404);
         $this->pageDir = $this->findPageDir();
         $this->pageRootUri = $this->getRootUri();
         $this->pageName = $this->getPageName();
@@ -83,17 +83,17 @@ class Builder extends Xplend
             header("HTTP/1.1 404 Not found");
             echo "<h1>Page not found</h1>";
             exit;
-            //Xplend::refreshError("Not found", "Page '" . end($_URI) . "' not found.", 404);
+            //Xplend::err("Not found", "Page '" . end($_URI) . "' not found.", 404);
         }
         // FAKE ALIAS BUGFIX
         if (@is_array($_APP["URL_MASK"])) {
             if (@array_key_exists(end($_URI), $_APP["URL_MASK"])) $aliasExt = end($_URI);
             if (@$aliasExt and !@$_ALIAS) {
-                Xplend::refreshError("Not found", "URL Mask '{$this->pageName}$aliasExt' not found.", 404);
+                Xplend::err("Not found", "URL Mask '{$this->pageName}$aliasExt' not found.", 404);
             }
         }
         //}
-        if (!$this->pageName) Xplend::refreshError("Not found", "Page '{$_PAR[0]}' not found.", 404);
+        if (!$this->pageName) Xplend::err("Not found", "Page '{$_PAR[0]}' not found.", 404);
 
         //==================================
         // DEFAULT LIBS, CORE LIBS & DEFAULT MODULES

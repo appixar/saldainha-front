@@ -1,9 +1,7 @@
 <?php
 class Http extends Xplend
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
     // check header authentication
     public static function auth($rules = array())
     {
@@ -56,15 +54,24 @@ class Http extends Xplend
         //prex($data);
 
         // AUTO SANITIZE DATA
-        if (@$_APP['API_SERVER']['SANITIZE_CONTROLLER']) {
-            $sanitize_controller = explode(".", $_APP['API_SERVER']['SANITIZE_CONTROLLER'])[0];
-            $sanitize_function = explode(".", $_APP['API_SERVER']['SANITIZE_CONTROLLER'])[1];
-            if (!$sanitize_function) Http::die(406, "Sanitize method not found: $sanitize_controller.?");
-            if (!method_exists($sanitize_controller, $sanitize_function)) {
-                Http::die(406, "Sanitize method not found: $sanitize_controller.$sanitize_function");
+        if ($data) {
+            if (@$_APP['API_SERVER']['SANITIZE_CONTROLLER']) {
+                $sanitize_controller = explode(".", $_APP['API_SERVER']['SANITIZE_CONTROLLER'])[0];
+                $sanitize_function = explode(".", $_APP['API_SERVER']['SANITIZE_CONTROLLER'])[1];
+                if (!$sanitize_function) Http::die(406, "Sanitize method not found: $sanitize_controller.?");
+                if (!method_exists($sanitize_controller, $sanitize_function)) {
+                    Http::die(406, "Sanitize method not found: $sanitize_controller.$sanitize_function");
+                }
+                $sanitize_object = new $sanitize_controller();
+                $data = $sanitize_object->$sanitize_function($data);
+                if (@$sanitize_object->error) Http::die(406, $sanitize_object->error);
             }
-            $sanitize_object = new $sanitize_controller();
-            $data = $sanitize_object->$sanitize_function($data);
+            // SANITIZE CUSTOM FIELDS
+            $functionPrefix = @$_APP['API_SERVER']['SANITIZE_FUNCTION_PREFIX'];
+            if ($functionPrefix) {
+                $data = self::sanitizeFunctions($data);
+                if (@$data['validation_error']) Http::die(406, $data['validation_error']);
+            }
         }
 
         // GET ROUTE MODULE NAME
@@ -97,7 +104,7 @@ class Http extends Xplend
             if ($conf['params']) $controller->params = $conf['params'];
             // success
             $return = @$controller->$function($data);
-            if (@$controller->res) Http::success($controller->res);
+            if (@$controller->res or is_array($controller->res)) Http::success($controller->res);
             elseif ($return) Http::success($return);
             // error
             else {
@@ -162,7 +169,7 @@ class Http extends Xplend
         global $_APP;
         if ($num == 400) $str = 'Bad request';
         if ($num == 401) $str = 'Unauthorized'; // Your API key is wrong.
-        if ($num == 402) $str = 'Payment required'; 
+        if ($num == 402) $str = 'Payment required';
         if ($num == 403) $str = 'Forbidden'; // The kitten requested is hidden for administrators only.
         if ($num == 404) $str = 'Not found';
         if ($num == 405) $str = 'Method not allowed'; // You tried to access a kitten with an invalid method.
@@ -187,6 +194,7 @@ class Http extends Xplend
         // SUCCESS INDICATOR
         if (@$_APP['API_SERVER']['JSON_RESULT_INDICATOR'] == true) {
             $json['success'] = 1;
+            $json['data'] = [];
             if ($msg) {
                 if (is_array($msg)) {
                     foreach ($msg as $k => $v) $json['data'][$k] = $v;
@@ -226,5 +234,31 @@ class Http extends Xplend
         }
         $_BODY = $input;
         return $input;
+    }
+    public static function sanitizeFunctions($receivedData = [])
+    {
+        global $_APP;
+        $prefix = @$_APP['API_SERVER']['SANITIZE_FUNCTION_PREFIX'];
+        $fields = Database::getAllFields();
+        $validatedData = $receivedData;
+        foreach ($receivedData as $fieldName => $fieldValue) {
+            // IS NOT DB FIELD
+            if (!@$fields[$fieldName]) {
+                $validatedData[$fieldName] = $fieldValue;
+                continue;
+            }
+            if (!$fieldValue) continue;
+            $params = explode(" ", $fields[$fieldName]);
+            foreach ($params as $param) {
+                $functionName = "{$prefix}{$param}";
+                //echo "$functionName/";
+                if (function_exists($functionName)) {
+                    $validatedData[$fieldName] = $functionName($fieldValue, $fieldName);
+                }
+                // validate error?
+                if (@isset($validatedData[$fieldName]['error'])) return ['validation_error' => $validatedData[$fieldName]['error']];
+            }
+        }
+        return $validatedData;
     }
 }

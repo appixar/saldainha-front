@@ -1,19 +1,19 @@
 #················································
 # APP SETTINGS
 #················································
-NAME: My Project
-ID: my-project
-URL: https://domain.com # http://localhost:8000
+NAME: Starmind API
+ID: starmind-api
+URL: https://api.starmind.app # http://localhost:8000
 FORCE_URL: false
 DYNAMIC_SUB_DOMAIN: false
 
 #················································
 # API-SERVER
 #················································
-#API_SERVER: false
 API_SERVER:
-  AUTH_CONTROLLER: HeaderController # external module
-  SANITIZE_CONTROLLER: MyService.sanitize
+  AUTH_CONTROLLER: AuthController # external module
+  SANITIZE_CONTROLLER: PgValidate.sanitize
+  SANITIZE_FUNCTION_PREFIX: sanitize_
   ALWAYS_200: false
   ROUTE_PERMISSION_FLAG: ⛊
   JSON_RESULT_INDICATOR: true # {success:1, data:json_data}
@@ -21,10 +21,7 @@ API_SERVER:
 #················································
 # API-CLIENT
 #················································
-API_CLIENT:
-  "main":
-    DNS: https://api.domain.com
-    HEADER: api_header # session[api_header][]
+API_CLIENT: false
 
 #················································
 # FRONTEND BUILD
@@ -34,21 +31,7 @@ API_CLIENT:
 #   - FALSE, if API server is on
 #   - FLOW_INNER: rules for builds inside parent build
 #················································
-#PAGES: false
-PAGES:
-  FILE_SEQUENCE:
-    - <PAGE>.php
-    - /inc-header.tpl
-    - <PAGE>.tpl
-    - /inc-footer.tpl
-    - scripts.tpl
-
-URL_MASK:
-  .post: <PAGE>.post.php
-  .run: <PAGE>.run.php
-  .exec: <PAGE>.exec.php
-  .css: <PAGE>.css
-  .js: <PAGE>.js
+PAGES: false
 
 #················································
 # SESSION TIME
@@ -73,23 +56,26 @@ CACHE:
   ENABLED: true
   IP: 127.0.0.1     # REDIS SERVER IP
   PORT: 6379        # REDIS SERVER PORT
+  PASS: <ENV.REDIS_PASS>
 
 #················································
 # JOBS EVERY 1 MINUTE
 #················································
 JOBS:
-  - src/jobs/demo.php
+  #- src/jobs/get-price.php
+  #- src/jobs/get-price-1m.php
+  #- src/jobs/ticker-analyze.php
+  #- src/jobs/check-result.php
 
 #················································
 # AUTO INCLUDE LIBS (/* TO ALL)
 #················································
 AUTOLOAD:
-  - modules/auth
-  - modules/api
-  - modules/mysql
-  - modules/mail
-  - src/libs/uitools
   - src/libs/helpers
+  - src/libs/prompt
+  - src/libs/data
+  - src/libs/finance
+  - src/libs/sanitize
 
 #················································
 # DEBUG FUNCTION

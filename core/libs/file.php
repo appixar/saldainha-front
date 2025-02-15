@@ -13,11 +13,14 @@ function getDirContents($dir, &$results = array())
     }
     return $results;
 }
-function repoExists($github_url)
+function repo_exists($github_url)
 {
     $headers = @get_headers($github_url);
-    if ($headers[12] != 'HTTP/1.1 200 OK') return false;
-    return true;
+    $found = false;
+    foreach ($headers as $header) {
+        if ($header == 'HTTP/1.1 200 OK') $found = true;
+    }
+    return $found;
 }
 function urlExists($url)
 {
@@ -53,6 +56,19 @@ function size($path)
         }
     }
     return $bytes;
+}
+// converte bytes em uma unidade legível, como MB, KB, GB
+function formatBytes($bytes, $precision = 2)
+{
+    $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+    $bytes = max($bytes, 0); // Garante que o valor não seja negativo
+    $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+    $power = min($power, count($units) - 1); // Garante que o índice não ultrapasse o número de unidades
+
+    $value = $bytes / pow(1024, $power);
+
+    return number_format($value, $precision) . ' ' . $units[$power];
 }
 
 // send entire path structure after ftp connect

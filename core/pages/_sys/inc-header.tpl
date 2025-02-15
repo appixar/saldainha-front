@@ -16,22 +16,30 @@
 
 <body>
 
-    <div class="mb-4">
-        <a href="/_sys/dashboard" class="btn btn-primary">
-            <i class="fa-solid fa-chart-line"></i>
-            Dashboard
-        </a>
-        <a href="/_sys/cache" class="btn btn-info">
-            <i class="fa-solid fa-database"></i>
-            Cache
-        </a>
-        <a href="/_sys/session" class="btn btn-warning">
-            <i class="fa-solid fa-file-lines"></i>
-            Session
-        </a>
-        <a href="/_sys/auth/logout" class="btn btn-secondary">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Logout
-        </a>
-        <hr>
-    </div>
+    <?php if (PAGE !== 'hello' and PAGE !== 'auth') { ?>
+
+        <div id="dash-menu" class="mb-4">
+            <a href="/_sys/dashboard" class="btn btn-<?= (PAGE == 'dashboard') ? 'black active' : 'dark' ?>">
+                <i class="fa-solid fa-chart-line"></i>
+                Dashboard
+            </a>
+            <a href="/_sys/dep" class="btn btn-<?= (PAGE == 'dep') ? 'black active' : 'dark' ?>">
+                <i class="fa-solid fa-layer-group"></i>
+                Dependencies
+            </a>
+            <a href="/_sys/cache" class="btn btn-<?= (PAGE == 'cache') ? 'black active' : 'dark' ?>">
+                <i class="fa-solid fa-database"></i>
+                Cache
+            </a>
+            <a href="/_sys/session" class="btn btn-<?= (PAGE == 'session') ? 'black active' : 'dark' ?>">
+                <i class="fa-solid fa-file-lines"></i>
+                Session
+            </a>
+            <a href="/_sys/auth/logout" class="btn btn-secondary" style="float:right">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Logout
+            </a>
+            <hr>
+        </div>
+
+    <?php } ?>

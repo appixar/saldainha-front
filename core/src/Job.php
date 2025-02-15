@@ -145,12 +145,12 @@ class Job extends Xplend
             // clear log file
             file_put_contents($this->log_file, "", FILE_APPEND);
         }
-        file_put_contents($this->log_file, "[" . date("Y-m-d H:i:s") . "] $message" . PHP_EOL, FILE_APPEND);
+        @file_put_contents($this->log_file, "[" . date("Y-m-d H:i:s") . "] $message" . PHP_EOL, FILE_APPEND);
     }
     public function end()
     {
         $this->time_total = number_format((microtime(true) - $this->time_start), 4);
-        $this->log("⚬ End. Runtime: " . $this->secToTime($this->time_total));
+        $this->say("⚬ End. Runtime: " . $this->secToTime($this->time_total), false, $this->conf['logSys']);
         //@unlink($this->caller_lock);
         exit;
     }
@@ -205,14 +205,15 @@ class Job extends Xplend
     {
         $this->loops_with_events[$this->current_loop] = 1;
         $timeStamp = "(" . date("H:i:s") . ") ";
-        $colorCode = $color ? $this->colors[$color] : '';
+        $colorCode = @$color ? @$this->colors[$color] : '';
 
         if (is_array($text)) {
             echo $timeStamp . print_r($text, true) . PHP_EOL;
             if ($log) $this->log(print_r($text, true));
         } else {
             $text = $this->addTagColorsToText($text);
-            $formattedText = "{$colorCode}{$text}{$this->colors['end']}";
+            $endColor = @$this->colors['end'];
+            $formattedText = "{$colorCode}{$text}{$endColor}";
             echo $timeStamp . $formattedText . PHP_EOL;
             if ($log) $this->log($formattedText);
         }
@@ -240,9 +241,11 @@ class Job extends Xplend
     }
     private function addTagColorsToText($text)
     {
-        foreach ($this->colors as $key => $value) {
-            $text = str_replace("<$key>", $value, $text);
-            $text = str_replace("</$key>", $this->colors['end'], $text);
+        if (@$this->colors) {
+            foreach ($this->colors as $key => $value) {
+                $text = str_replace("<$key>", $value, $text);
+                $text = str_replace("</$key>", $this->colors['end'], $text);
+            }
         }
         return $text;
     }

@@ -21,9 +21,9 @@ class Request extends Xplend
     {
         return self::req("DELETE", $endpoint, $body, $conf);
     }
-    public static function req($method, $endpoint, $body = array(), $headers_append = array())
+    public static function req($method, $endpoint, $body = array(), $headersAppend = array())
     {
-        global $_APP, $_SESSION;
+        global $_APP_VAULT, $_SESSION;
 
         if (!extension_loaded('curl')) {
             Xplend::refreshError("Extension error", "CURL extension is not loaded");
@@ -36,10 +36,10 @@ class Request extends Xplend
             // api_id://
             if ($api_id !== 'http' and $api_id !== 'https') {
                 $endpoint_clean = explode('://', $endpoint)[1];
-                if (@!$_APP['API_CLIENT'][$api_id]['DNS']) {
+                if (@!$_APP_VAULT['API_CLIENT'][$api_id]['DNS']) {
                     Xplend::refreshError("Request error", "Api client ID not found: $api_id");
                 }
-                $url = $_APP['API_CLIENT'][$api_id]['DNS'] . '/' . $endpoint_clean;
+                $url = $_APP_VAULT['API_CLIENT'][$api_id]['DNS'] . '/' . $endpoint_clean;
             }
             // https://
             else {
@@ -49,21 +49,24 @@ class Request extends Xplend
         // DONT HAVE " :// "
         // CHOOSE FIRST API ID
         else {
-            foreach ($_APP['API_CLIENT'] as $k => $v) {
+            foreach ($_APP_VAULT['API_CLIENT'] as $k => $v) {
                 $api_id = $k;
                 break;
             }
-            $url = @$_APP['API_CLIENT'][$api_id]['DNS'];
+            $url = @$_APP_VAULT['API_CLIENT'][$api_id]['DNS'];
             $url .= $endpoint;
         }
 
         // Data & headers
         $headers = array('Content-Type: application/json');
-        $h = @$_APP['API_CLIENT'][$api_id]['HEADER'];
-        $h = @$_SESSION[$h];
-        if ($h) foreach ($h as $k => $v) $headers[] = "$k: $v";
-        if ($headers_append) {
-            foreach ($headers_append as $k => $v) $headers[] = "$k: $v";
+        $headersData = @$_APP_VAULT['API_CLIENT'][$api_id]['HEADERS'];
+        if ($headersData and !is_array($headersData)) {
+            Xplend::refreshError("Request error", "Api client headers format error");
+        }
+        // Merge arrays
+        if ($headersData) foreach ($headersData as $k => $v) $headers[] = "$k: $v";
+        if ($headersAppend) {
+            foreach ($headersAppend as $k => $v) $headers[] = "$k: $v";
         }
         $body = json_encode($body);
 
