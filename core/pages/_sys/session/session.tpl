@@ -1,0 +1,1 @@
+<textarea id="dash-textarea"><?=print_r($_SESSION)?></textarea>
