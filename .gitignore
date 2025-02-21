@@ -16,7 +16,7 @@ pages/*
 !src/controllers/DemoController.php
 !src/controllers/AuthController.php
 !src/routes/DemoRoute.php
-!src/services/.gitkeep
+!src/services/DemoService.php
 !src/jobs/notes
 !src/jobs/demo.php
 !src/jobs/logs/.gitkeep
