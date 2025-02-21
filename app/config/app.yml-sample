@@ -3,7 +3,7 @@
 #················································
 NAME: Starmind API
 ID: starmind-api
-URL: https://api.starmind.app # http://localhost:8000
+URL: http://localhost:8000
 FORCE_URL: false
 DYNAMIC_SUB_DOMAIN: false
 
@@ -21,7 +21,11 @@ API_SERVER:
 #················································
 # API-CLIENT
 #················································
-API_CLIENT: false
+API_CLIENT:
+  "main":
+    DNS: https://api.starmind.app
+    HEADERS:
+      Authorization: <ENV.API_SECRET>
 
 #················································
 # FRONTEND BUILD
@@ -31,7 +35,13 @@ API_CLIENT: false
 #   - FALSE, if API server is on
 #   - FLOW_INNER: rules for builds inside parent build
 #················································
-PAGES: false
+PAGES:
+  FILE_SEQUENCE:
+    - <PAGE>.php
+    - /inc-header.tpl
+    - <PAGE>.tpl
+    - /inc-footer.tpl
+    - scripts.tpl
 
 #················································
 # SESSION TIME
