@@ -286,7 +286,7 @@ function mArrayFind($this_, $here, $return_id = false)
     return false;
 }
 // Gerador de senhas
-function geraSenha($tamanho = 6, $maiusculas = true, $numeros = true, $simbolos = false)
+function randomString($tamanho = 6, $maiusculas = true, $numeros = true, $simbolos = false)
 {
     $lmin = 'abcdefghijklmnopqrstuvwxyz';
     $lmai = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
