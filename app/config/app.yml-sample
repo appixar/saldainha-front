@@ -1,0 +1,102 @@
+#················································
+# APP SETTINGS
+#················································
+NAME: My App
+ID: app-name
+URL: http://localhost:8000
+FORCE_URL: false
+DYNAMIC_SUB_DOMAIN: false
+
+#················································
+# API-SERVER
+#················································
+API_SERVER:
+  AUTH_CONTROLLER: AuthController # external module
+  SANITIZE_CONTROLLER: PgValidate.sanitize
+  SANITIZE_FUNCTION_PREFIX: sanitize_
+  ALWAYS_200: false
+  ROUTE_PERMISSION_FLAG: ⛊
+  JSON_RESULT_INDICATOR: true # {success:1, data:json_data}
+
+#················································
+# API-CLIENT
+#················································
+API_CLIENT:
+  "main":
+    DNS: https://api.starmind.app
+    HEADERS:
+      Authorization: <ENV.API_SECRET>
+
+#················································
+# FRONTEND BUILD
+#------------------------------------------------
+# File inclusion sequence
+# Notes:
+#   - FALSE, if API server is on
+#   - FLOW_INNER: rules for builds inside parent build
+#················································
+PAGES:
+  FILE_SEQUENCE:
+    - <PAGE>.php
+    - /inc-header.tpl
+    - <PAGE>.tpl
+    - /inc-footer.tpl
+    - scripts.tpl
+
+URL_MASK:
+  .post: <PAGE>.post.php
+  .run: <PAGE>.run.php
+  .exec: <PAGE>.exec.php
+  .css: <PAGE>.css
+  .js: <PAGE>.js
+
+#················································
+# SESSION TIME
+#················································
+SESSION:
+  LIFETIME: 3600 # SEGUNDOS DE INATIVIDADE. 21600=6H, 43200=12H, 86400=24H
+  COOKIE_LIFETIME: 21600 # SE 0 = DESTRUÍDO AO FECHAR BROWSER
+  PROBABILTY: 1 # 1% DE PROBABILIDADE DE REMOVER SESSÕES EXPIRADAS A CADA NOVA SESSÃO INICIADA.
+
+#················································
+# PROJECT MONITOR (https://<project_url>/_sys/dashboard)
+#················································
+MONITOR:
+  ENABLED: true
+  CUSTOM_JOBS:
+    bots: node
+
+#················································
+# CACHE CONTROL (REDIS)
+#················································
+CACHE:
+  ENABLED: true
+  IP: 127.0.0.1     # REDIS SERVER IP
+  PORT: 6379        # REDIS SERVER PORT
+  PASS: <ENV.REDIS_PASS>
+
+#················································
+# JOBS EVERY 1 MINUTE
+#················································
+JOBS:
+  #- src/jobs/get-price.php
+  #- src/jobs/get-price-1m.php
+  #- src/jobs/ticker-analyze.php
+  #- src/jobs/check-result.php
+
+#················································
+# AUTO INCLUDE LIBS (/* TO ALL)
+#················································
+AUTOLOAD:
+  - src/libs/helpers
+  - src/libs/prompt
+  - src/libs/data
+  - src/libs/finance
+  - src/libs/sanitize
+
+#················································
+# DEBUG FUNCTION
+#------------------------------------------------
+# If true, can be accessed by <url>/debug
+#················································
+DEBUG: true
