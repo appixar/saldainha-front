@@ -55,9 +55,14 @@ function uuid4()
         mt_rand(0, 0xffff)
     );
 }
+// Remover espaços
 function cleanSpaces($str)
 {
     return preg_replace('/\s+/', '', $str);
+}
+// Remover espaços extras
+function removeExtraSpaces($string) {
+    return preg_replace('/ {2,}/', ' ', trim($string));
 }
 // Converter string em alfanumérico
 function alphanumeric($data)

@@ -1,7 +1,4 @@
 <?php
-//--------------------------------------------------
-// form protection CSRF (Cross-Site Request Forgery)
-//--------------------------------------------------
 function csrfGenerate()
 {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -9,8 +6,9 @@ function csrfGenerate()
 }
 function csrfCheck()
 {
-    if ($_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        unset($_SESSION['csrf_token']);
+    $sessionToken = $_SESSION['csrf_token'];
+    unset($_SESSION['csrf_token']);
+    if (@$_POST['csrf_token'] !== $sessionToken) {
         $_SESSION['cb'][] = [
             'type' => 'danger',
             'text' => 'CSRF token mismatch'

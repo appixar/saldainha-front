@@ -136,7 +136,33 @@ class Builder extends Xplend
     }
     public function getRootUrl()
     {
-        return $this->getBaseUrl() . "/" . $this->getRootUri();
+        //return $this->getBaseUrl() . "/" . $this->getRootUri();
+        global $_PAR, $_URI;
+
+        // Obter o URI do diretório físico
+        $rootUri = $this->getRootUri();
+
+        // Substituir os marcadores de parâmetros (@param) pelos valores reais
+        $segments = explode('/', $rootUri);
+        $resultSegments = [];
+
+        foreach ($segments as $segment) {
+            if (substr($segment, 0, 1) === '@') {
+                $paramName = substr($segment, 1);
+                if (isset($_PAR[$paramName])) {
+                    $resultSegments[] = $_PAR[$paramName];
+                } else {
+                    $resultSegments[] = $segment; // Manter original se param não existir
+                }
+            } else {
+                $resultSegments[] = $segment;
+            }
+        }
+
+        // Reconstruir a URL com os parâmetros reais
+        $realRootUri = implode('/', $resultSegments);
+
+        return $this->getBaseUrl() . "/" . $realRootUri;
     }
     private function handleApiServer()
     {

@@ -47,7 +47,7 @@ class Xplend
                 if (@$_APP['SESSION']['PROBABILTY'] >= 0) ini_set('session.gc_probability', $_APP['SESSION']['PROBABILTY']);
                 if (@$_APP['SESSION']['COOKIE_LIFETIME'] >= 0) ini_set('session.cookie_lifetime', $_APP['SESSION']['COOKIE_LIFETIME']);
             }
-            session_start();
+            @session_start();
         }
 
         // LOAD CORE LIBS
