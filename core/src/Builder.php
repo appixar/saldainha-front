@@ -23,6 +23,7 @@ class Builder extends Xplend
         global $_BODY; // api server
         global $_ROUTE, $_ROUTE_PERMISSION; // current route + permission
         global $_isAPI;
+        global $_ALIAS;
         global $_FILES_WAIT_END; // files to append at the end
         //
         global $_BUILD_COUNT;
@@ -72,7 +73,6 @@ class Builder extends Xplend
         // GET URL ALIAS IF EXISTS (/.css, /.js)
         //==================================
         $_ALIAS = $this->getAliasFiles();
-
         // SET $_PAR
         //$_PAR = $this->getParamFromUri();
         //==================================
@@ -110,9 +110,8 @@ class Builder extends Xplend
         // TARGET FILE IS ALIAS (/.CSS/.JS/.POST)
         //==================================
         if ($_ALIAS) {
-            //array_shift($_PAR); // remove first element (/.post/)
-            include $_ALIAS;
-            exit;
+            //include $_ALIAS;
+            //exit;
         }
         //==================================
         // CONTENT
@@ -442,10 +441,12 @@ class Builder extends Xplend
     private function getFiles()
     {
         // GLOB
-        global $_APP, $_FILES_WAIT_END;
+        global $_APP, $_FILES_WAIT_END, $_ALIAS;
         $files = array();
 
         // GET PAGE DATA
+        //$alias_fn = $this->getAliasFiles();
+        //die($alias_fn);
         $page = $this->getPageName();
         $root = $this->getRootDir();
         $yaml = $this->getYaml();
@@ -474,10 +475,15 @@ class Builder extends Xplend
                     $wait_end = true;
                     $elem = trim(explode("...", $elem)[1]);
                 }
-                $fn = str_replace("<PAGE>", $page, $elem);
-                if (substr($fn, 0, 1) === "/") $file = "$root/$fn";
-                elseif (@$yaml_dir and substr($fn, 0, 2) === "./") $file = "$yaml_dir/$fn";
-                else $file = "{$this->pageDir}/$fn";
+                if ($_ALIAS && $elem == "<PAGE>.php") {
+                    // Usamos o arquivo alias em vez do <PAGE>.php
+                    $file = $_ALIAS;
+                } else {
+                    $fn = str_replace("<PAGE>", $page, $elem);
+                    if (substr($fn, 0, 1) === "/") $file = "$root/$fn";
+                    elseif (@$yaml_dir and substr($fn, 0, 2) === "./") $file = "$yaml_dir/$fn";
+                    else $file = "{$this->pageDir}/$fn";
+                }
                 //$files[] = $file;
                 if (file_exists($file)) {
                     if ($wait_end) $_FILES_WAIT_END[] = realpath($file);
