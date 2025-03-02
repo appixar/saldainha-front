@@ -478,6 +478,7 @@ class Builder extends Xplend
                 if ($_ALIAS && $elem == "<PAGE>.php") {
                     // Usamos o arquivo alias em vez do <PAGE>.php
                     $file = $_ALIAS;
+                    $stopAfterAlias=1;
                 } else {
                     $fn = str_replace("<PAGE>", $page, $elem);
                     if (substr($fn, 0, 1) === "/") $file = "$root/$fn";
@@ -488,6 +489,7 @@ class Builder extends Xplend
                 if (file_exists($file)) {
                     if ($wait_end) $_FILES_WAIT_END[] = realpath($file);
                     else $files[] = realpath($file);
+                    if (@$stopAfterAlias) break;
                 }
             }
             //prex($files);
