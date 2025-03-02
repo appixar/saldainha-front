@@ -109,9 +109,9 @@ class Builder extends Xplend
         // INCLUDE ONLY ALIAS IF EXISTS
         // TARGET FILE IS ALIAS (/.CSS/.JS/.POST)
         //==================================
-        if ($_ALIAS) {
-            //include $_ALIAS;
-            //exit;
+        if ($_ALIAS && @$_APP['URL_MASK_ALONE']) {
+            include $_ALIAS;
+            exit;
         }
         //==================================
         // CONTENT
@@ -478,7 +478,7 @@ class Builder extends Xplend
                 if ($_ALIAS && $elem == "<PAGE>.php") {
                     // Usamos o arquivo alias em vez do <PAGE>.php
                     $file = $_ALIAS;
-                    $stopAfterAlias=1;
+                    $stopAfterAlias = 1;
                 } else {
                     $fn = str_replace("<PAGE>", $page, $elem);
                     if (substr($fn, 0, 1) === "/") $file = "$root/$fn";

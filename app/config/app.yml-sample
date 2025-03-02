@@ -50,6 +50,10 @@ URL_MASK:
   .css: <PAGE>.css
   .js: <PAGE>.js
 
+# Mask files will be included alone (separately),
+# ... not following the pagges file sequence.
+URL_MASK_ALONE: false 
+
 #················································
 # SESSION TIME
 #················································
