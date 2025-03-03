@@ -15,8 +15,22 @@
 class Mason extends Xplend
 {
     const DIR_CMD = __DIR__ . '/../mason/';
-    #const DIR_MODULES = __DIR__ . '/../../src/modules/';
-    //const DIR_ROOT = __DIR__ . '/../../';
+    public static $colors = [
+        'header' => "\033[95m",
+        //
+        'pink' => "\033[94m",
+        'cyan' => "\033[36m",
+        'green' => "\033[92m",
+        'yellow' => "\033[93m",
+        'red' => "\033[91m",
+        'blue' => "\033[1m",
+        'magenta' => "\033[35m",
+        //
+        'blink' => "\033[5m",
+        'strong' => "\033[1m",
+        'u' => "\033[4m",
+        'end' => "\033[0m"
+    ];
 
     public function __construct()
     {
@@ -95,49 +109,60 @@ class Mason extends Xplend
             else $parentClass->{$args[1]}();
         } else $parentClass->{$args[1]}();
     }
-
-    public static function say($text, $header = false, $color = '')
+    public static function header($text, $color = '', $returnOnly = false)
     {
+        if (PHP_SAPI !== 'cli') return;
         $header_width = 50;
         $header_symbol = "·";
-        $colors = array(
-            'header' => "\033[95m",
-            //
-            'pink' => "\033[94m",
-            'cyan' => "\033[36m",
-            'green' => "\033[92m",
-            'yellow' => "\033[93m",
-            'red' => "\033[91m",
-            'blue' => "\033[1m",
-            'magenta' => "\033[35m",
-            //
-            'blink' => "\033[5m",
-            'strong' => "\033[1m",
-            'u' => "\033[4m",
-            'end' => "\033[0m"
-        );
-        foreach ($colors as $k => $v) {
-            $text = str_replace("<$k>", $v, $text);
-            $text = str_replace("</$k>", $colors['end'], $text);
-        }
+        $_content = "";
 
-        if (!$color) $c = '';
-        else $c = $colors[$color];
+        // GET COLOR
+        $colorCode = @self::$colors[$color];
+
+        // REPLACE TAG COLORS IN TEXT
+        foreach (self::$colors as $k => $v) {
+            $text = str_replace("<$k>", $v, $text);
+            $text = str_replace("</$k>", self::$colors['end'], $text);
+        }
 
         // OPEN HEADER BAR
-        if ($header) {
-            $_content = $c . str_repeat($header_symbol, $header_width) . $colors['end'];
-            echo $_content . PHP_EOL;
-        }
+        $_content .= $colorCode . str_repeat($header_symbol, $header_width) . self::$colors['end'] . PHP_EOL;
 
         // TEXT
-        $_content = "{$c}$text{$colors['end']}";
-        echo $_content . PHP_EOL;
+        $_content .= $colorCode . $text . self::$colors['end'] . PHP_EOL;
 
         // CLOSE HEADER BAR
-        if ($header) {
-            $_content = $c . str_repeat($header_symbol, $header_width) . $colors['end'];
-            echo $_content . PHP_EOL;
+        $_content .= $colorCode . str_repeat($header_symbol, $header_width) . self::$colors['end'] . PHP_EOL;
+
+        // ECHO OR RETURN
+        if ($returnOnly) {
+            return $_content;
+        } else echo $_content;
+    }
+    public static function say($text, $color = '', $returnOnly = false)
+    {
+        if (PHP_SAPI !== 'cli') return;
+        $timeStamp = "(" . date("H:i:s") . ") ";
+
+        // IS ARRAY
+        if (is_array($text)) {
+            $formattedText = $timeStamp . print_r($text, true) . PHP_EOL;
+            if ($returnOnly) return $formattedText;
+            else echo $formattedText;
         }
+        // REPLACE TAG COLORS IN TEXT
+        foreach (self::$colors as $k => $v) {
+            $text = str_replace("<$k>", $v, $text);
+            $text = str_replace("</$k>", self::$colors['end'], $text);
+        }
+        // ADD FUNCTION PARAM COLOR DO TEXT
+        $colorCode = @$color ? @self::$colors[$color] : '';
+        $endColor = @self::$colors['end'];
+        $formattedText = "{$colorCode}{$text}{$endColor}";
+        $formattedText = $timeStamp . $formattedText . PHP_EOL;
+        // RETURN 
+        if ($returnOnly) {
+            return $formattedText;
+        } else echo $formattedText;
     }
 }

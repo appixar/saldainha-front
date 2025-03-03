@@ -19,7 +19,7 @@ pages/*
 !src/services/DemoService.php
 !src/jobs/notes
 !src/jobs/job-demo.php
-!src/jobs/logs/.gitkeep
+!src/jobs/log/.gitkeep
 !src/libs/helpers-demo.php
 !modules/.gitkeep
 .env

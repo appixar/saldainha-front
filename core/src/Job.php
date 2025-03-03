@@ -204,40 +204,16 @@ class Job extends Xplend
     public function say($text, $color = '', $log = true)
     {
         $this->loops_with_events[$this->current_loop] = 1;
-        $timeStamp = "(" . date("H:i:s") . ") ";
-        $colorCode = @$color ? @$this->colors[$color] : '';
-
-        if (is_array($text)) {
-            echo $timeStamp . print_r($text, true) . PHP_EOL;
-            if ($log) $this->log(print_r($text, true));
-        } else {
-            $text = $this->addTagColorsToText($text);
-            $endColor = @$this->colors['end'];
-            $formattedText = "{$colorCode}{$text}{$endColor}";
-            echo $timeStamp . $formattedText . PHP_EOL;
-            if ($log) $this->log($formattedText);
-        }
+        $formattedText = Mason::say($text, $color, true);
+        if ($log) $this->log($formattedText);
+        echo $formattedText;
     }
-    public function header($text, $color = '')
+    public function header($text, $color = '', $log = true)
     {
         $this->loops_with_events[$this->current_loop] = 1;
-        $timeStamp = "(" . date("H:i:s") . ") ";
-        $headerWidth = 50;
-        $headerSymbol = "·";
-        $colorCode = $color ? $this->colors[$color] : '';
-
-        $headerLine = str_repeat($headerSymbol, $headerWidth);
-        $formattedHeader = "{$colorCode}{$headerLine}{$this->colors['end']}";
-        $formattedText = "{$colorCode}{$this->addTagColorsToText($text)}{$this->colors['end']}";
-
-        echo $timeStamp . $formattedHeader . PHP_EOL;
-        $this->log($formattedHeader);
-
-        echo $timeStamp . $formattedText . PHP_EOL;
-        $this->log($formattedText);
-
-        echo $timeStamp . $formattedHeader . PHP_EOL;
-        $this->log($formattedHeader);
+        $formattedText = Mason::header($text, $color, true);
+        if ($log) $this->log($formattedText);
+        echo $formattedText;
     }
     private function addTagColorsToText($text)
     {
