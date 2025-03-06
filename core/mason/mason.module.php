@@ -17,7 +17,7 @@ class module extends Mason
     // CREATE DIR
     $dir = self::DIR_MODULES . "/$module/";
     if (!is_dir($dir)) {
-      $this->say("Module '$module' is not installed", false, "yellow");
+      $this->say("Module '$module' is not installed", "yellow");
       exit;
     }
     // CLONE
@@ -31,7 +31,7 @@ class module extends Mason
     // CREATE DIR
     $dir = realpath(self::DIR_MODULES . "/$module/");
     if (file_exists($dir)) {
-      $this->say("Module '$module' already installed", false, "yellow");
+      $this->say("Module '$module' already installed", "yellow");
       exit;
     }
     // CLONE
@@ -45,16 +45,16 @@ class module extends Mason
     //$rootDir = self::DIR_ROOT;
 
     // CHECK REPO
-    $this->say("Looking for '$module' ...", false);
+    $this->say("Looking for '$module' ...");
     if (!repo_exists($repo_url)) {
-      $this->say("Not found", false, "red");
+      $this->say("Not found", "red");
       exit;
     }
-    $this->say("Found!", false);
+    $this->say("Found!");
 
     // CHECK LAST COMMIT TO UPDATE MANIFEST
     // LAST VERSION
-    $this->say("Checking last commit ...", false);
+    $this->say("Checking last commit ...");
     $lastCommit = $this->getLastCommit($module);
     $lastSha = @$lastCommit['sha'];
     $lastDate = @$lastCommit['commit']['committer']['date'];
@@ -72,9 +72,9 @@ class module extends Mason
 
       // UPDATE NOW!
       if ($lastSha != $currSha) {
-        $this->say("New commit detected: $lastDate", false, "green");
-        $this->say("Commiter: $lastAuthor", false, "green");
-        $this->say("SHA: $lastSha", false, "green");
+        $this->say("New commit detected: $lastDate", "green");
+        $this->say("Commiter: $lastAuthor", "green");
+        $this->say("SHA: $lastSha", "green");
 
         // CLONE REPO
         shell_exec("rm -rf .tmp");
@@ -83,7 +83,7 @@ class module extends Mason
 
         // GET UPDATED FILES ONLY
         if (!file_exists('.tmp/manifest.json')) {
-          $this->say("manifest.json not found.", false, "red");
+          $this->say("manifest.json not found.", "red");
           shell_exec("rm -rf .tmp");
           exit;
         }
@@ -93,8 +93,8 @@ class module extends Mason
 
         if (@$deleteBeforeUpdate) {
           $this->say("");
-          $this->say("<!> Need to remove module files before upgrade!", false, "yellow");
-          $this->say("Removing: $targetDir/*", false, "yellow");
+          $this->say("<!> Need to remove module files before upgrade!", "yellow");
+          $this->say("Removing: $targetDir/*", "yellow");
           if ($this->confirm()) {
             // backup files
             //$dir_backup = "$dir/backup-" . geraSenha(3);
@@ -154,7 +154,7 @@ class module extends Mason
     }
 
     // UPDATE MANIFEST: COMMIT SHA & COMMIT DATE
-    $this->say("Updating manifest ...", false, "magenta");
+    $this->say("Updating manifest ...", "magenta");
     $manifest = json_decode(file_get_contents("$targetDir/manifest.json"), true); // CHANGE PLAIN TEXT TO PREVENT MINIFY FILE
     $manifest['commit']['sha'] = $lastSha;
     $manifest['commit']['date'] = $lastDate;
@@ -162,7 +162,7 @@ class module extends Mason
     file_put_contents("$targetDir/manifest.json", $manifest);
 
     // DONE!
-    $this->say("Done!", false, "green");
+    $this->say("Done!", "green");
   }
   private function confirm()
   {
@@ -187,10 +187,10 @@ class module extends Mason
     $diff = self::compareDirectories($targetDir, self::DIR_ROOT . "/.tmp/");
     //
     foreach ($diff['only_exist_2'] as $file) {
-      $this->say("[+] " . self::shortPathInner($file, $targetDir), false, "green");
+      $this->say("[+] " . self::shortPathInner($file, $targetDir), "green");
     }
     foreach ($diff['different'] as $file) {
-      $this->say("[#] " . self::shortPathInner($file, $targetDir), false, "yellow");
+      $this->say("[#] " . self::shortPathInner($file, $targetDir), "yellow");
     }
     foreach ($diff['only_exist_1'] as $file) {
       //$this->say("[-] " . self::shortPathInner($file, $targetDir), false, "red");
@@ -293,8 +293,8 @@ class module extends Mason
     // COPY REMAINING FILES
     $listFiles = getDirContents('.tmp/');
     shell_exec("cp -R .tmp/* $targetDir");
-    $this->say("Copying files...", false, "magenta");
-    $this->say("Target: $targetDir", false, "magenta");
+    $this->say("Copying files...", "magenta");
+    $this->say("Target: $targetDir", "magenta");
     $listFilesNew = []; // clean git, etc
     foreach ($listFiles as $f) {
       if (!is_dir($f)) {
@@ -303,7 +303,7 @@ class module extends Mason
         $listFilesNew[] = $f;
       }
     }
-    $this->say("Total files: " . count($listFilesNew), false, "magenta");
+    $this->say("Total files: " . count($listFilesNew), "magenta");
     shell_exec("rm -rf .tmp");
   }
 }
