@@ -102,6 +102,7 @@ class module extends Mason
             //shell_exec("mv $dir/* $dir_backup");
             shell_exec("rm -rf $targetDir");
           } else {
+            shell_exec("rm -rf .tmp");
             $this->say("Aborted.");
             exit;
           }
@@ -124,6 +125,7 @@ class module extends Mason
         if (@!$deleteBeforeUpdate) {
           if (!$this->confirmChanges($targetDir)) {
             $this->say("Aborted.");
+            shell_exec("rm -rf .tmp");
             exit;
           }
         }
