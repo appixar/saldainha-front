@@ -38,9 +38,9 @@ class up extends Mason
 
         // VERIFY SHA
         if ($lastSha != $currSha) {
-            $this->say("New commit detected: $lastDate", false, "green");
-            $this->say("Commiter: $lastAuthor", false, "green");
-            $this->say("SHA: $lastSha", false, "green");
+            $this->say("New commit detected: $lastDate", "green");
+            $this->say("Commiter: $lastAuthor", "green");
+            $this->say("SHA: $lastSha", "green");
             $updateNow++;
         }
 
@@ -65,7 +65,7 @@ class up extends Mason
             $this->copyFiles();
 
             // UPDATE MANIFEST: COMMIT SHA & COMMIT DATE
-            $this->say("Updating manifest ...", false, "magenta");
+            $this->say("Updating manifest ...", "magenta");
             $manifest = json_decode(file_get_contents("manifest.json"), true); // CHANGE PLAIN TEXT TO PREVENT MINIFY FILE
             $manifest['commit']['sha'] = $lastSha;
             $manifest['commit']['date'] = $lastDate;
@@ -73,7 +73,7 @@ class up extends Mason
             file_put_contents("manifest.json", $manifest);
 
             // FINISH
-            $this->say("Done!", false, "green");
+            $this->say("Done!", "green");
         } else $this->say("You are up to date.");
     }
     private function cleanPath($path)
@@ -92,7 +92,7 @@ class up extends Mason
         // COPY REMAINING FILES
         $listFiles = getDirContents('.tmp/');
         shell_exec("cp -R .tmp/* ./");
-        $this->say("Copying files...", false, "magenta");
+        $this->say("Copying files...", "magenta");
         $listFilesNew = []; // clean git, etc
         foreach ($listFiles as $f) {
             if (!is_dir($f)) {
@@ -101,7 +101,7 @@ class up extends Mason
                 $listFilesNew[] = $f;
             }
         }
-        $this->say("Total files: " . count($listFilesNew), false, "magenta");
+        $this->say("Total files: " . count($listFilesNew), "magenta");
         shell_exec("rm -rf .tmp");
     }
 }
