@@ -25,7 +25,7 @@ const formify = {
         return !this.isInvalid(selector); // Retorna true se não houver erros e false se houver
     },
     checkForm: function (form) {
-        const inputs = form.querySelectorAll('input');
+        const inputs = form.querySelectorAll('input, select');
         let allValid = true;
         inputs.forEach(input => {
             if (isVisible(input)) {
@@ -216,84 +216,103 @@ const formify = {
     },
     validator: {
         validateInput: function (input) {
+            const isSelect = input.tagName === 'SELECT';
             const maskType = input.getAttribute('mask');
             const type = input.getAttribute('type');
             const isRequired = input.hasAttribute('required');
             const minLength = input.getAttribute('minlength');
             const isSecurePassword = input.classList.contains('secure-password');
-            // Validar o atributo required
-            if (isRequired && !input.value.trim()) {
-                formify.validator.setError(input, 'Campo obrigatório.');
-                return false;
-            }
-            // Validar senha segura
-            if (isSecurePassword && input.value && !formify.validator.validateSecurePassword(input.value)) {
-                formify.validator.setError(input, 'Senha insegura. Deve conter letras maiúsculas, minúsculas, números, caracteres especiais e no mínimo 6 caracteres.');
-                return false;
-            }
-            // Validar o atributo type
-            if (type) {
-                if (type === 'email' && input.value && !formify.validator.validateEmail(input.value)) {
-                    formify.validator.setError(input, 'Email inválido.');
-                    return false;
-                } else if (type === 'url' && input.value && !formify.validator.validateURL(input.value)) {
-                    formify.validator.setError(input, 'URL inválida.');
+
+            // Validar o atributo required (modificado para funcionar com select)
+            if (isRequired) {
+                if (isSelect) {
+                    // Para select, verificamos se o valor é vazio ou o valor da primeira opção (geralmente um placeholder)
+                    if (!input.value || (input.options.length > 0 && input.selectedIndex === 0 && input.options[0].value === '')) {
+                        formify.validator.setError(input, 'Campo obrigatório.');
+                        return false;
+                    }
+                } else if (!input.value.trim()) {
+                    // Para outros elementos
+                    formify.validator.setError(input, 'Campo obrigatório.');
                     return false;
                 }
-            }
-            // Validar minlength
-            if (minLength && input.value.length < parseInt(minLength)) {
-                formify.validator.setError(input, `A entrada deve ter no mínimo ${minLength} caracteres.`);
-                return false;
-            }
-            // Validar igualdade de campos com equal-to
-            const equalToSelector = input.getAttribute('equal-to');
-            if (equalToSelector) {
-                const equalToElement = document.querySelector(equalToSelector);
-                if (!formify.validator.validateEqualTo(input, equalToElement)) {
-                    formify.validator.setError(input, 'Os campos não são iguais.');
-                    return false;
-                }
-            }
-            // Validar máscaras
-            if (maskType && input.value.trim() && !formify.validator.validateMask(input, maskType)) {
-                let customMessage = '';
-                switch (maskType) {
-                    case 'cpf':
-                        customMessage = 'CPF inválido.';
-                        break;
-                    case 'cnpj':
-                        if (!formify.validator.validateCNPJ(input.value)) {
-                            customMessage = 'CNPJ inválido.';
-                        }
-                        break;
-                    case 'date':
-                        customMessage = 'Data inválida.';
-                        break;
-                    case 'date-br':
-                        customMessage = 'Data inválida.';
-                        break;
-                    case 'phone':
-                        customMessage = 'Número de telefone inválido.';
-                        break;
-                    case 'phone-ddd':
-                        customMessage = 'Número de telefone com DDD inválido.';
-                        break;
-                    case 'money':
-                        customMessage = 'Formato monetário inválido.';
-                        break;
-                    case 'alphanumeric':
-                        customMessage = 'A entrada deve ser alfanumérica e em minúsculas.';
-                        break;
-                    case 'time':
-                    case 'time-sec':
-                        customMessage = 'Horário inválido.';
-                        break;
-                }
-                formify.validator.setError(input, customMessage);
-                return false;
             }
 
+            // O restante da validação permanece inalterado e se aplica apenas a inputs
+            if (!isSelect) {
+                // Validar o atributo required
+                if (isRequired && !input.value.trim()) {
+                    formify.validator.setError(input, 'Campo obrigatório.');
+                    return false;
+                }
+                // Validar senha segura
+                if (isSecurePassword && input.value && !formify.validator.validateSecurePassword(input.value)) {
+                    formify.validator.setError(input, 'Senha insegura. Deve conter letras maiúsculas, minúsculas, números, caracteres especiais e no mínimo 6 caracteres.');
+                    return false;
+                }
+                // Validar o atributo type
+                if (type) {
+                    if (type === 'email' && input.value && !formify.validator.validateEmail(input.value)) {
+                        formify.validator.setError(input, 'Email inválido.');
+                        return false;
+                    } else if (type === 'url' && input.value && !formify.validator.validateURL(input.value)) {
+                        formify.validator.setError(input, 'URL inválida.');
+                        return false;
+                    }
+                }
+                // Validar minlength
+                if (minLength && input.value.length < parseInt(minLength)) {
+                    formify.validator.setError(input, `A entrada deve ter no mínimo ${minLength} caracteres.`);
+                    return false;
+                }
+                // Validar igualdade de campos com equal-to
+                const equalToSelector = input.getAttribute('equal-to');
+                if (equalToSelector) {
+                    const equalToElement = document.querySelector(equalToSelector);
+                    if (!formify.validator.validateEqualTo(input, equalToElement)) {
+                        formify.validator.setError(input, 'Os campos não são iguais.');
+                        return false;
+                    }
+                }
+                // Validar máscaras
+                if (maskType && input.value.trim() && !formify.validator.validateMask(input, maskType)) {
+                    let customMessage = '';
+                    switch (maskType) {
+                        case 'cpf':
+                            customMessage = 'CPF inválido.';
+                            break;
+                        case 'cnpj':
+                            if (!formify.validator.validateCNPJ(input.value)) {
+                                customMessage = 'CNPJ inválido.';
+                            }
+                            break;
+                        case 'date':
+                            customMessage = 'Data inválida.';
+                            break;
+                        case 'date-br':
+                            customMessage = 'Data inválida.';
+                            break;
+                        case 'phone':
+                            customMessage = 'Número de telefone inválido.';
+                            break;
+                        case 'phone-ddd':
+                            customMessage = 'Número de telefone com DDD inválido.';
+                            break;
+                        case 'money':
+                            customMessage = 'Formato monetário inválido.';
+                            break;
+                        case 'alphanumeric':
+                            customMessage = 'A entrada deve ser alfanumérica e em minúsculas.';
+                            break;
+                        case 'time':
+                        case 'time-sec':
+                            customMessage = 'Horário inválido.';
+                            break;
+                    }
+                    formify.validator.setError(input, customMessage);
+                    return false;
+                }
+            }
             // Limpar erro
             formify.validator.clearError(input);
             return true;
@@ -547,17 +566,27 @@ const formify = {
                         event.preventDefault();
                     }
                 });
-                // Adicionado listener de blur para mostrar erros após saída do campo
-                form.querySelectorAll('input').forEach(input => {
-                    input.addEventListener('blur', function () {
-                        formify.validator.validateInput(input);
+                const formElements = form.querySelectorAll('input, select');
+                formElements.forEach(element => {
+                    // Adicionado listener de blur para mostrar erros após saída do campo
+                    element.addEventListener('blur', function () {
+                        formify.validator.validateInput(element);
                     });
-                    // Adicionado listener para limpar erro em tempo real enquanto digita
-                    input.addEventListener('input', function () {
-                        if (input.classList.contains('error-input')) {
-                            formify.validator.validateInput(input);
-                        }
-                    });
+
+                    // Adicionado listener para limpar erro em tempo real
+                    if (element.tagName === 'INPUT') {
+                        element.addEventListener('input', function () {
+                            if (element.classList.contains('error-input')) {
+                                formify.validator.validateInput(element);
+                            }
+                        });
+                    } else if (element.tagName === 'SELECT') {
+                        element.addEventListener('change', function () {
+                            if (element.classList.contains('error-input')) {
+                                formify.validator.validateInput(element);
+                            }
+                        });
+                    }
                 });
             });
         }
