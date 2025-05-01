@@ -64,7 +64,9 @@ class Builder extends Xplend
         $yaml = $this->getYaml();
 
         // MERGE $YAML TO $_APP
-        if (is_array($yaml)) $_APP = array_merge($_APP, $yaml);
+        //if (is_array($yaml)) $_APP = array_merge($_APP, $yaml);
+        if (is_array($yaml)) $this->mergeAppConf($yaml);
+        //prex($_APP);
 
         // CREATE $_APP_REAL WITH REAL VARIABLES .ENV
         $_APP_VAULT = Xplend::replaceEnvValues($_APP);
@@ -121,6 +123,37 @@ class Builder extends Xplend
             $_APP["SNIPPETS"][] = $_APP["SNIPPET"];
             unset($_APP["SNIPPET"]);
         }
+    }
+    private function mergeAppConf($newYaml)
+    {
+        global $_APP;
+        $originalSequence = @$_APP['PAGES']['FILE_SEQUENCE'];
+        $newSequence = @$newYaml['PAGES']['FILE_SEQUENCE'];
+        $newSequenceFixed = [];
+        $dotIndex = 0;
+        if ($newSequence and $originalSequence) {
+            foreach ($newSequence as $file) {
+                if ($file == '.') {
+                    $newSequenceFixed[] = $originalSequence[$dotIndex];
+                    $dotIndex++;
+                    continue;
+                }
+                if ($file == '...') {
+                    $i = 0;
+                    foreach ($originalSequence as $file2) {
+                        if ($i < $dotIndex) {
+                            $i++;
+                            continue;
+                        }
+                        $newSequenceFixed[] = $file2;
+                    }
+                    continue;
+                }
+                $newSequenceFixed[] = $file;
+            }
+        }
+        $_APP = array_merge($_APP, $newYaml);
+        if ($newSequenceFixed) $_APP['PAGES']['FILE_SEQUENCE'] = $newSequenceFixed;
     }
     public static function getLastInstance()
     {
@@ -456,9 +489,8 @@ class Builder extends Xplend
             array_pop($yaml_dir);
             $yaml_dir = implode("/", $yaml_dir);
         }
-
         // MERGE YAML
-        if (is_array($yaml)) $_APP = array_merge($_APP, $yaml);
+        #if (is_array($yaml)) $_APP = array_merge($_APP, $yaml);
         $flow = @$_APP["PAGES"]["FILE_SEQUENCE"];
 
         // SNIPPET? INCLUDE ONLY .PHP & .TPL
@@ -565,7 +597,12 @@ class Builder extends Xplend
     }
     public function getBaseUrl()
     {
-        $protocol = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http';
+        $protocol = "http";
+        // HTTPS BY CLOUDFLARE? (PROXY)
+        if (isset($_SERVER["HTTP_CF_VISITOR"])) $protocol = json_decode($_SERVER["HTTP_CF_VISITOR"], true)['scheme'];
+        // HTTPS DEFAULT?
+        if (isset($_SERVER['HTTPS'])) $protocol = "https";
+
         $host = $_SERVER['HTTP_HOST'];
         //$uri = @explode("?", $_SERVER['REQUEST_URI'])[0];
         $current_url = $protocol . '://' . $host;

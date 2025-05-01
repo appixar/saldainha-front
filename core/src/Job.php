@@ -5,7 +5,8 @@ class Job extends Xplend
     private $conf = array(
         "logDirRequired" => true,
         "logSys" => true, // dont log sys messages (start,end,etc)
-        "logMaxSize" => 25 //mb
+        "logMaxSize" => 25, //mb
+        "multiProcess" => false
     );
     //
     private $time_start = 0;
@@ -169,7 +170,7 @@ class Job extends Xplend
     }
     public function check_caller_process()
     {
-        if ($this->check_file_running($this->caller_fn) > 1) {
+        if (!$this->conf['multiProcess'] and $this->check_file_running($this->caller_fn) > 1) {
             Mason::say("<red>✕ Already running.</red>");
             exit;
         }
@@ -204,16 +205,40 @@ class Job extends Xplend
     public function say($text, $color = '', $log = true)
     {
         $this->loops_with_events[$this->current_loop] = 1;
-        $formattedText = Mason::say($text, $color, true);
-        if ($log) $this->log($formattedText);
-        echo $formattedText;
+        $timeStamp = "(" . date("H:i:s") . ") ";
+        $colorCode = @$color ? @$this->colors[$color] : '';
+
+        if (is_array($text)) {
+            echo $timeStamp . print_r($text, true) . PHP_EOL;
+            if ($log) $this->log(print_r($text, true));
+        } else {
+            $text = $this->addTagColorsToText($text);
+            $endColor = @$this->colors['end'];
+            $formattedText = "{$colorCode}{$text}{$endColor}";
+            echo $timeStamp . $formattedText . PHP_EOL;
+            if ($log) $this->log($formattedText);
+        }
     }
-    public function header($text, $color = '', $log = true)
+    public function header($text, $color = '')
     {
         $this->loops_with_events[$this->current_loop] = 1;
-        $formattedText = Mason::header($text, $color, true);
-        if ($log) $this->log($formattedText);
-        echo $formattedText;
+        $timeStamp = "(" . date("H:i:s") . ") ";
+        $headerWidth = 50;
+        $headerSymbol = "·";
+        $colorCode = $color ? $this->colors[$color] : '';
+
+        $headerLine = str_repeat($headerSymbol, $headerWidth);
+        $formattedHeader = "{$colorCode}{$headerLine}{$this->colors['end']}";
+        $formattedText = "{$colorCode}{$this->addTagColorsToText($text)}{$this->colors['end']}";
+
+        echo $timeStamp . $formattedHeader . PHP_EOL;
+        $this->log($formattedHeader);
+
+        echo $timeStamp . $formattedText . PHP_EOL;
+        $this->log($formattedText);
+
+        echo $timeStamp . $formattedHeader . PHP_EOL;
+        $this->log($formattedHeader);
     }
     private function addTagColorsToText($text)
     {
@@ -243,5 +268,50 @@ class Job extends Xplend
             'end' => "\033[0m"
         );
         return $colors;
+    }
+    public function maxRunning($limitCount, $filename = false)
+    {
+        if (!$filename) $filename = $this->caller_fn;
+        $running = $this->check_file_running($filename);
+        if ($running > $limitCount) {
+            $this->say("✕ Limit process: {$filename} ({$running})", 'red');
+            exit;
+        }
+    }
+    public function checkRunning($filename = false)
+    {
+        if (!$filename) $filename = $this->caller_fn;
+        return $this->check_file_running($filename);
+    }
+    public function checkCpu() {
+        return $this->getCpuUsage();
+    }
+    public function maxCpu($cpuPercentage) {
+        $cpuUsage = $this->getCpuUsage();
+        if ($cpuUsage > $cpuPercentage) {
+            $this->say("✕ CPU usage: {$cpuUsage}% (limit: {$cpuPercentage}%)", 'red');
+            exit;
+        }
+    }
+    private function getCpuUsage()
+    {
+        $stat1 = file_get_contents('/proc/stat');
+        usleep(500000); // 0.5 segundo
+        $stat2 = file_get_contents('/proc/stat');
+    
+        $cpu1 = preg_split('/\s+/', explode("\n", $stat1)[0]);
+        $cpu2 = preg_split('/\s+/', explode("\n", $stat2)[0]);
+    
+        $idle1 = $cpu1[4];
+        $idle2 = $cpu2[4];
+    
+        $total1 = array_sum(array_slice($cpu1, 1, 10));
+        $total2 = array_sum(array_slice($cpu2, 1, 10));
+    
+        $totalDiff = $total2 - $total1;
+        $idleDiff = $idle2 - $idle1;
+    
+        $usage = 100 * (1 - ($idleDiff / $totalDiff));
+        return round($usage, 2);
     }
 }
