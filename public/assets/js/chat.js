@@ -29,7 +29,7 @@ $('#sendMessage').click(async function () {
     $('[name="message_ia"]').val('')
 
     setTimeout(async () => {
-        addSaldainhaLoader()
+        addSALDANHINHALoader()
     
         const formData = new FormData();
         formData.append('prompt', message.trim());
@@ -58,7 +58,7 @@ $('#sendMessage').click(async function () {
         }
         
         processing = false
-        rmSaldainhaLoader()
+        rmSALDANHINHALoader()
     }, 400);
 });
 
@@ -72,16 +72,16 @@ $('[name="message_ia"]').keyup(function () {
 });
 
 $(document).ready(function() {
-    addSaldainhaLoader()
+    addSALDANHINHALoader()
     var hour = getCurrentHour();
 
     setTimeout(() => {
-        var msgWelcome = botMessageTemplate.replace('{{message}}', 'Bem vindo(a), sou o Saldainha, Assistente de IA do Saldanha Invest. Em que posso ajudar?')
+        var msgWelcome = botMessageTemplate.replace('{{message}}', 'Bem vindo(a), sou o SALDANHINHA, Assistente de IA do Saldanha Invest. Em que posso ajudar?')
             msgWelcome = msgWelcome.replace('{{hour}}', hour)
     
         $('#interactions').append(msgWelcome)
         $('[name="message_ia"]').removeAttr('disabled')
-        rmSaldainhaLoader()
+        rmSALDANHINHALoader()
     }, 2000);
 });
 
@@ -110,7 +110,7 @@ var botMessageTemplate = `
 `;
 
 var botLoaderTemplate = `
-    <div class="flex items-start space-x-2.5 sm:space-x-5 saldainha_loader">
+    <div class="flex items-start space-x-2.5 sm:space-x-5 SALDANHINHA_loader">
 		<div class="avatar">
 			<img class="rounded-full" src="/assets/template/images/robozinho.png" :src="activeChat.avatar_url" alt="avatar">
 		</div>
@@ -127,12 +127,12 @@ var botLoaderTemplate = `
 	</div>
 `;
 
-function addSaldainhaLoader() {
+function addSALDANHINHALoader() {
     $('#interactions').append(botLoaderTemplate)
 }
 
-function rmSaldainhaLoader() {
-    $('.saldainha_loader').remove()
+function rmSALDANHINHALoader() {
+    $('.SALDANHINHA_loader').remove()
 }
 
 function getCurrentHour() {

@@ -1,5 +1,5 @@
 <!-- Main Content Wrapper -->
-<main x-data="{isShowChatInfo : !$store.breakpoints.mdAndDown ,activeChat:{chatId:'chat-1',name:'Saldainha',avatar_url:'/assets/template/images/robozinho.png'}}" x-effect="$store.breakpoints.mdAndDown === true &amp;&amp; (isShowChatInfo = false)" class="main-content h-100vh chat-app mt-0 flex w-full flex-col" :class="isShowChatInfo &amp;&amp; 'lg:mr-80'" @change-active-chat.window="activeChat=$event.detail">
+<main x-data="{isShowChatInfo : !$store.breakpoints.mdAndDown ,activeChat:{chatId:'chat-1',name:'SALDANHINHA',avatar_url:'/assets/template/images/robozinho.png'}}" x-effect="$store.breakpoints.mdAndDown === true &amp;&amp; (isShowChatInfo = false)" class="main-content h-100vh chat-app mt-0 flex w-full flex-col" :class="isShowChatInfo &amp;&amp; 'lg:mr-80'" @change-active-chat.window="activeChat=$event.detail">
 	<div class="chat-header relative z-10 flex h-[61px] w-full shrink-0 items-center justify-between border-b border-slate-150 bg-white px-[calc(var(--margin-x)-.5rem)] shadow-sm transition-[padding,width] duration-[.25s] dark:border-navy-700 dark:bg-navy-800">
 		<div class="flex items-center space-x-5">
 			<div @click="isShowChatInfo = true" class="flex cursor-pointer items-center space-x-4 font-inter">
@@ -7,7 +7,7 @@
 					<img class="rounded-full" src="/assets/template/images/robozinho.png" :src="activeChat.avatar_url" alt="avatar">
 				</div>
 				<div>
-					<p class="font-larger text-slate-700 line-clamp-1 dark:text-navy-100" x-text="activeChat.name">Saldainha</p>
+					<p class="font-larger text-slate-700 line-clamp-1 dark:text-navy-100" x-text="activeChat.name">SALDANHINHA</p>
 					<!-- <p class="mt-0.5 text-xs">Last seen recently</p> -->
 				</div>
 			</div>
