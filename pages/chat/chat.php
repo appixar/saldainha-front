@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SERVER['HTTP_X_REQUESTED_WI
 		'fonte' => '1'
 	]);
 
-	$ch = curl_init('http://localhost:3000/chat');
+	$ch = curl_init('http://143.198.180.193:3000/chat');
 	curl_setopt_array($ch, [
 		CURLOPT_RETURNTRANSFER => true,
 		CURLOPT_POST => true,
