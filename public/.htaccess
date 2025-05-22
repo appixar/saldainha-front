@@ -4,7 +4,7 @@ Options +FollowSymlinks
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [NC]
+RewriteRule ^(.*)$ index.php [QSA,L]
 
 <Files *.yml>
 Deny from all
