@@ -1,6 +1,6 @@
 <?php
 // get file name
-$public_dir = __DIR__ . '/../../../public/';
+$public_dir = __DIR__ . '/../../../html/';
 $fn = @explode("?", $_SERVER['REQUEST_URI'])[0]; // ignore "?" (get params)
 $fn_path = $public_dir . $fn;
 // include file
