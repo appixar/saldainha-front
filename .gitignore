@@ -1,7 +1,7 @@
 # Novel
-config/*.yml
+# config/*.yml
 database/*.yml
-*/config/*.yml
+# */config/*.yml
 */database/*.yml
 .tmp/*
 public/upload/*
@@ -11,7 +11,7 @@ src/jobs/*
 src/libs/*
 src/routes/*
 src/services/*
-pages/*
+# pages/*
 !pages/home
 !src/controllers/DemoController.php
 !src/controllers/AuthDemoController.php

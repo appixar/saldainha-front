@@ -1,0 +1,10 @@
+NAME: My Project
+URL: http://localhost:8000
+PAGES:
+  FILE_SEQUENCE:
+    - <PAGE>.php
+    - /inc-header.tpl
+    - <PAGE>.tpl
+    - scripts.tpl
+    - /inc-footer.tpl
+
