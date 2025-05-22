@@ -1,5 +1,5 @@
 NAME: My Project
-URL: http://localhost:8000
+URL: http://143.198.180.193
 PAGES:
   FILE_SEQUENCE:
     - <PAGE>.php
